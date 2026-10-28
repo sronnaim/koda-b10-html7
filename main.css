@@ -32,7 +32,7 @@
     .calc-input {
         background-color: hsl(153, 71%, 84%);
         display: grid;
-        grid-template-rows: repeat(8, 1fr);
+        grid-template-rows: repeat(5, 1fr);
         grid-template-columns: repeat(4, 1fr);
 
         /* Result button */
