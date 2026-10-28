@@ -7,3 +7,7 @@ HTML Grid implementation on a calculator UI
 ### Reference
 
 ![Reference](/reference.webp)
+
+### My Mock Preview
+
+![Preview](/preview.png)
