@@ -11,3 +11,7 @@ HTML Grid implementation on a calculator UI
 ### My Mock Preview
 
 ![Preview](/preview.png)
+
+### Demo
+
+![Demo](/demo.gif)

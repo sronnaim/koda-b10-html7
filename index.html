@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang='en'>
+
 <head>
     <meta charset='utf-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
@@ -7,6 +8,7 @@
     <title>HTML Grid Calculator</title>
     <link rel='stylesheet' href='main.css'>
 </head>
+
 <body>
     <main>
         <article>
@@ -15,33 +17,258 @@
             <section>
                 <div class="calc">
                     <div class="calc-output">
-                        <div class="output-result">67</div>
-                        <div class="output-operation">67 + 0</div>
+                        <div class="output-result"></div>
+                        <div class="output-operation"></div>
                     </div>
                     <div class="calc-input">
-                        <button class="btn">Del</button>
-                        <button class="btn">Log</button>
-                        <button class="btn">&infin;</button>
-                        <button class="btn">&divide;</button>
-                        <button class="btn">1</button>
-                        <button class="btn">2</button>
-                        <button class="btn">3</button>
-                        <button class="btn">&times;</button>
-                        <button class="btn">4</button>
-                        <button class="btn">5</button>
-                        <button class="btn">6</button>
-                        <button class="btn">+</button>
-                        <button class="btn">7</button>
-                        <button class="btn">8</button>
-                        <button class="btn">9</button>
-                        <button class="btn">&minus;</button>
-                        <button class="btn">Result</button>
-                        <button class="btn">0</button>
-                        <button class="btn">,</button>
+                        <button class="btn del">del</button>
+                        <button class="btn log">log</button>
+                        <button class="btn infin">&infin;</button>
+                        <button class="btn div">&divide;</button>
+                        <button class="btn one">1</button>
+                        <button class="btn two">2</button>
+                        <button class="btn three">3</button>
+                        <button class="btn mult">&times;</button>
+                        <button class="btn four">4</button>
+                        <button class="btn five">5</button>
+                        <button class="btn six">6</button>
+                        <button class="btn pos add">+</button>
+                        <button class="btn seven">7</button>
+                        <button class="btn eight">8</button>
+                        <button class="btn nine">9</button>
+                        <button class="btn neg subt">&minus;</button>
+                        <button class="btn res">result</button>
+                        <button class="btn zero">0</button>
+                        <button class="btn dec">,</button>
                     </div>
                 </div>
             </section>
         </article>
-    </main>    
+    </main>
+    <script src="https://code.jquery.com/jquery-4.0.0.min.js"
+        integrity="sha256-OaVG6prZf4v69dPg6PhVattBXkcOWQB62pdZ3ORyrao=" crossorigin="anonymous"></script>
+
+    <script>
+        let q = {
+            x: "",
+            y: "",
+            op: "",
+        }
+
+        const qs = []
+
+        const opFuncs = {
+            "log": calcLog,
+            "mult": multiply,
+            "div": divide,
+            "subt": subtract,
+            "add": add,
+        }
+
+        const opValues = {
+            "×": "mult",
+            "÷": "div",
+            "−": "subt",
+            "+": "add"
+        }
+
+        const opSymbols = {
+            "mult": "×",
+            "div": "÷",
+            "subt": "−",
+            "add": "+",
+        }
+
+        const digitsClasses = [".one", ".two", ".three", ".four", ".five", ".six", ".seven", ".eight", ".nine", ".zero"]
+        const opClasses = [".div", ".mult", ".subt", ".add"]
+
+        registerListeners(digitsClasses, "click", handleOnDigitClick)
+        registerListeners(".log", "click", handleOnLogOpClick)
+        registerListeners(opClasses, "click", handleOnOpClick)
+        registerListeners('.infin', "click", handleOnInfinityClick)
+        registerListeners('.del', "click", handleOnDelClick)
+        registerListeners(".res", "click", handleOnResClick)
+        registerListeners(".dec", "click", handleOnDecClick)
+
+        function handleOnDecClick() {
+            if (q.op && q.y.includes(","))
+                return
+
+            if (!q.op && q.x.includes(","))
+                return
+
+            if (q.op)
+                q.y = `${q.y}.`
+            else
+                q.x = `${q.x}.`
+
+            updateOutput()
+        }
+
+        function resetQuery() {
+            q.x = ""
+            q.y = ""
+            q.op = ""
+        }
+
+        function handleOnResClick() {
+            if (!q.op)
+                return
+
+            let res = calc(q.x, q.y, q.op)
+
+            if (Number.isNaN(res)) {
+                resetQuery()
+                updateOutput()
+
+                return
+            }
+
+            if (res === Infinity || res === -Infinity)
+                res = res < 0 ? -Infinity : Infinity
+
+            qs.push({ ...q, res })
+
+            q.x = `${res === Infinity || res === -Infinity ? res < 0 ? "-∞" : "∞" : res}`
+            q.op = ""
+            q.y = ""
+
+            updateOutput()
+            updateResultOp()
+        }
+
+        function updateResultOp() {
+            if (qs.length < 1) {
+                $(".output-operation").text("")
+            }
+
+            const last = qs[qs.length - 1]
+
+            renderResultOp(formatQuery(last))
+        }
+
+        function calc(x, y, op) {
+            if (y === "" || op === "")
+                return NaN
+
+            let numX = x === "" ? undefined : Number(x)
+            let numY = Number(y)
+
+            if (x === "∞" || x === "-∞")
+                numX = x === "∞" ? Infinity : -Infinity
+
+            if (y === "∞" || y === "-∞")
+                numY = y === "∞" ? Infinity : -Infinity
+
+            return opFuncs[op](numX, numY)
+        }
+
+        function handleOnLogOpClick() {
+            q.op = "log"
+
+            updateOutput()
+        }
+
+        function renderResult(res) {
+            $(".output-result").text(res)
+        }
+
+        function renderResultOp(op) {
+            $(".output-operation").text(op)
+        }
+
+        function formatQuery(q) {
+            const x = q.x || ""
+            let op = ""
+            let y = ""
+
+            if (q.op === "log") {
+                op = `log(${q.y})`
+            } else {
+                if (q.op) op = opSymbols[q.op]
+                if (q.y) y = q.y
+            }
+
+            const output = `${x}${op}${y}`
+
+            return output
+        }
+
+        function updateOutput() {
+            renderResult(formatQuery(q))
+        }
+
+        function handleOnDelClick() {
+            q.x = ""
+            q.y = ""
+            q.op = ""
+
+            updateOutput()
+            renderResultOp("")
+        }
+
+        function handleOnOpClick(e) {
+            if (!q.x)
+                return
+
+            if (!q.x) {
+                q.x = q.y
+                q.y = ""
+            }
+
+            q.op = opValues[e.currentTarget.textContent]
+
+            updateOutput()
+        }
+
+        function handleOnDigitClick(e) {
+            if (q.op)
+                q.y = q.y.includes("∞") ? e.currentTarget.textContent : `${q.y}${e.currentTarget.textContent}`
+            else
+                q.x = q.x.includes("∞") ? e.currentTarget.textContent : `${q.x}${e.currentTarget.textContent}`
+
+            updateOutput()
+        }
+
+        function handleOnInfinityClick(e) {
+            if (q.op) q.y = "∞"
+            else q.x = "∞"
+
+            updateOutput()
+        }
+
+        function registerListeners(keys, event, handler) {
+            if (!Array.isArray(keys))
+                return $(keys).on(event, handler)
+
+            keys.forEach(cls => $(cls).on(event, handler))
+        }
+
+        function divide(x, y) {
+            return Number(x) / Number(y)
+        }
+
+        function multiply(x, y) {
+            return Number(x) * Number(y)
+        }
+
+        function calcLog(x, y) {
+            console.log(x, y)
+
+            if (typeof x !== "number" || Number.isNaN(x))
+                return Math.log10(y)
+
+            return Math.log10(y) * x
+        }
+
+        function subtract(x, y) {
+            return x - y
+        }
+
+        function add(x, y) {
+            return x + y
+        }
+    </script>
 </body>
+
 </html>
